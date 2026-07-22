@@ -1,1 +1,1 @@
-This is my collection of plugins that I'm currently using, I hope some of these author don't mind since I upload them here just in case these original file got deleted, note that most of these might not work for L4D1 since i mainly play L4D2 
+This is my collection of plugins that I'm currently using, I hope some of these author don't mind since I upload them here just in case these original file got deleted, note that most of these might not work for L4D1 since i mainly play L4D2, also might require high SM such as SM 1.11+
