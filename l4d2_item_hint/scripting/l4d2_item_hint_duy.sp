@@ -13,7 +13,7 @@ float fCoolDownTime[MAXPLAYERS+1];
 #define MAXENTITIES 2048
 int g_iHintRef[MAXENTITIES];
 int g_iHintTargetRef[MAXENTITIES];
-int g_iModelIndex[MAXENTITIES] = 0;
+int g_iModelIndex[MAXENTITIES];
 Handle g_iModelTimer[MAXENTITIES];
 Handle g_hUseEntity;
 StringMap g_smModelToName;
@@ -74,9 +74,9 @@ public void OnPluginStart()
 	CvarFindRadius = FindConVar("player_use_radius");
 	AddCommandListener(Vocalize_Listener, "vocalize");
 	
-	g_hCoolDown = CreateConVar(			"l4d2_item_hint_cooldown_time",	"1",	"Cold Down Time in seconds a player can use 'Look' item chat again.", FCVAR_NOTIFY, true, 0.0 );
+	g_hCoolDown = CreateConVar(			"l4d2_item_hint_cooldown_time",	"5",	"Cold Down Time in seconds a player can use 'Look' item chat again.", FCVAR_NOTIFY, true, 0.0 );
 	g_hGlowTimer = CreateConVar(		"l4d2_item_hint_glow_timer",	"50.0",	"Item Glow Time.", FCVAR_NOTIFY, true, 0.0 );
-	g_hColorGlowRange = CreateConVar(	"l4d2_item_hint_glow_range",	"1000",	"Item Glow Range.", FCVAR_NOTIFY, true, 0.0 );
+	g_hColorGlowRange = CreateConVar(	"l4d2_item_hint_glow_range",	"2000",	"Item Glow Range.", FCVAR_NOTIFY, true, 0.0 );
 	g_hCvarColor = CreateConVar(		"l4d2_item_hint_glow_color",	"255 255 0",	"Item Glow Color, Three values between 0-255 separated by spaces. (Empty = Disable Glow)", FCVAR_NOTIFY);
 	AutoExecConfig(true, "l4d2_item_hint");
 
@@ -296,59 +296,54 @@ public Action Vocalize_Listener(int client, const char[] command, int argc)
 							GetEntityClassname(iEntity, classname, sizeof(classname));
 							if (g_smModelToName.GetString(sEntModelName, sItemName, sizeof(sItemName)))
 							{
-								//PrintToChatAll("\x01(\x04Vocalize\x01) \x05%N\x01: %s", client, sItemName);
-								FakeClientCommand(client, "say %s", sItemName);
-								fCoolDownTime[client] = GetEngineTime() + g_fCoolDown;
 								bGlow = true;
 							}
 							else if (StrContains(sEntModelName, "/melee/") != -1) //custom 3rd party melee weapon
 							{
 								strcopy(sItemName, sizeof(sItemName), "Custom melee weapon here!");
-								FakeClientCommand(client, "say %s", sItemName);
-								fCoolDownTime[client] = GetEngineTime() + g_fCoolDown;
 								bGlow = true;
 							}
 							else if (StrContains(classname, "first_aid_kit") != -1)
 							{
 								strcopy(sItemName, sizeof(sItemName), "First aid kit here!");
-								FakeClientCommand(client, "say %s", sItemName);
-								fCoolDownTime[client] = GetEngineTime() + g_fCoolDown;
 								bGlow = true;
 							}	
 							else if (StrContains(classname, "pistol") != -1)
 							{
 								strcopy(sItemName, sizeof(sItemName), "Pistol here!");
-								FakeClientCommand(client, "say %s", sItemName);
-								fCoolDownTime[client] = GetEngineTime() + g_fCoolDown;
 								bGlow = true;
 							}	
 							else if (StrContains(classname, "laser") != -1) 
 							{
 								strcopy(sItemName, sizeof(sItemName), "Laser sights here!");
-								FakeClientCommand(client, "say %s", sItemName);
-								fCoolDownTime[client] = GetEngineTime() + g_fCoolDown;
 								bGlow = true;
 							}
 							else if (StrContains(classname, "ammo") != -1) 
 							{
 								strcopy(sItemName, sizeof(sItemName), "Ammo here!");
-								FakeClientCommand(client, "say %s", sItemName);
-								fCoolDownTime[client] = GetEngineTime() + g_fCoolDown;
 								bGlow = true;
 							}
 							else if (StrContains(sEntModelName, "checkpoint_door") != -1) 
 							{
 								strcopy(sItemName, sizeof(sItemName), "Saferoom here!");
-								FakeClientCommand(client, "say %s", sItemName);
-								fCoolDownTime[client] = GetEngineTime() + g_fCoolDown;
 								bGlow = true;
 							}
 							else if (StrContains(classname, "checkpoint") != -1) 
 							{
 								strcopy(sItemName, sizeof(sItemName), "Saferoom here!");
-								FakeClientCommand(client, "say %s", sItemName);
-								fCoolDownTime[client] = GetEngineTime() + g_fCoolDown;
 								bGlow = true;
+							}
+
+							if (bGlow)
+							{
+								for (int i = 1; i <= MaxClients; i++)
+								{
+									if (IsClientInGame(i) && !IsFakeClient(i))
+									{
+										PrintTeamColorChat(i, client, "\x03%N\x01:  %s", client, sItemName);
+									}
+								}
+								fCoolDownTime[client] = GetEngineTime() + g_fCoolDown;
 							}
 
 							if(bGlow && g_iCvarColor != 0) 
@@ -384,19 +379,51 @@ public Action Vocalize_Listener(int client, const char[] command, int argc)
 								
 								if (StrContains(sEntModelName, "checkpoint_door") != -1 && StrContains(classname, "checkpoint") != -1)
 								{
-									CreateInstructorHint(iEntity, "icon_door", sItemName, "1000", "10", "255 255 255");
+									CreateInstructorHint(iEntity, "icon_door", sItemName, "2000", "10", "255 255 255");
 								}
 								else if (StrContains(classname, "laser") != -1)
 								{
-									CreateInstructorHint(iEntity, "icon_laser_sight", sItemName, "1000", "10", "255 255 255");
+									CreateInstructorHint(iEntity, "icon_laser_sight", sItemName, "2000", "10", "255 255 255");
 								}
 								else if (StrContains(classname, "ammo") != -1)
 								{
-									CreateInstructorHint(iEntity, "icon_ammo", sItemName, "1000", "10", "255 255 255");
+									CreateInstructorHint(iEntity, "icon_ammo", sItemName, "2000", "10", "255 255 255");
+								}
+								else if (StrContains(classname, "first_aid_kit") != -1)
+								{
+									CreateInstructorHint(iEntity, "icon_healing", sItemName, "2000", "10", "255 255 255");
+								}
+								else if (StrContains(classname, "defibrillator") != -1)
+								{
+									CreateInstructorHint(iEntity, "icon_defibrillator", sItemName, "2000", "10", "255 255 255");
+								}
+								else if (StrContains(classname, "molotov") != -1)
+								{
+									CreateInstructorHint(iEntity, "icon_equip_molotov", sItemName, "2000", "10", "255 255 255");
+								}
+								else if (StrContains(classname, "pipe_bomb") != -1)
+								{
+									CreateInstructorHint(iEntity, "icon_equip_pipebomb", sItemName, "2000", "10", "255 255 255");
+								}
+								else if (StrContains(classname, "pain_pills") != -1)
+								{
+									CreateInstructorHint(iEntity, "icon_equip_pills", sItemName, "2000", "10", "255 255 255");
+								}
+								else if (StrContains(classname, "adrenaline") != -1)
+								{
+									CreateInstructorHint(iEntity, "icon_equip_adrenaline", sItemName, "2000", "10", "255 255 255");
+								}
+								else if (StrContains(classname, "upgradepack_explosive") != -1)
+								{
+									CreateInstructorHint(iEntity, "icon_explosive_ammo", sItemName, "2000", "10", "255 255 255");
+								}
+								else if (StrContains(classname, "upgradepack_incendiary") != -1)
+								{
+									CreateInstructorHint(iEntity, "icon_incendiary_ammo", sItemName, "2000", "10", "255 255 255");
 								}
 								else 
 								{
-									CreateInstructorHint(iEntity, "icon_interact", sItemName, "1000", "10", "255 255 255");
+									CreateInstructorHint(iEntity, "icon_interact", sItemName, "2000", "10", "255 255 255");
 								}
 
 								// Set model invisible
@@ -427,19 +454,19 @@ int CreateInstructorHint(int target, const char[] icon, const char[] text, const
 {
 	if (!IsValidEntityIndex(target) || !IsValidEntity(target))
 		return INVALID_ENT_REFERENCE;
+		
+	int existingHint = EntRefToEntIndex(g_iHintRef[target]);
+	if (existingHint != INVALID_ENT_REFERENCE && IsValidEntity(existingHint))
+	{
+		return g_iHintRef[target];
+	}
 
 	// Remove only the previous env_instructor_hint for this item.
 	RemoveEntityHint(target);
 
-	// Use one stable name for each entity. Re-pinging the same item must reuse
-	// the same hint_name so hint_instance_type 1 suppresses duplicate hints.
-	// EntRef includes the entity serial, therefore a later entity reusing the
-	// same index will still receive a different name.
 	char targetName[64];
 	Format(targetName, sizeof(targetName), "item_hint_%d", EntIndexToEntRef(target));
 
-	// Preserve the map/plugin targetname before assigning our own.
-	// Only the first hint for this entity stores the original value.
 	if (!g_bSavedTargetName[target])
 	{
 		g_sOriginalTargetName[target][0] = '\0';
@@ -587,6 +614,21 @@ void RemoveEntityHint(int entity)
 	RestoreTargetName(entity);
 }
 
+void PrintTeamColorChat(int client, int author, const char[] format, any ...)
+{
+	char buffer[256];
+	VFormat(buffer, sizeof(buffer), format, 4);
+
+	Handle hBf = StartMessageOne("SayText2", client);
+	if (hBf != null)
+	{
+		BfWriteByte(hBf, author);
+		BfWriteByte(hBf, true);
+		BfWriteString(hBf, buffer);
+		EndMessage();
+	}
+}
+
 int GetUseEntity(int client, float fRadius)
 {
 	return SDKCall(g_hUseEntity, client, fRadius, 0.0, 0.0, 0, 0);
@@ -630,21 +672,20 @@ int GetColor(char[] sTemp)
 	return color;
 }
 
+/*
 bool IsValidEntRef(int entity)
 {
 	if( entity && EntRefToEntIndex(entity) != INVALID_ENT_REFERENCE && entity!= -1 )
 		return true;
 	return false;
 }
+*/
 
 public void OnEntityDestroyed(int entity)
 {
 	if (!g_bConfigLoaded || g_bShuttingDown || !IsValidEntityIndex(entity))
 		return;
 
-	// Never kill another entity from inside this engine destruction callback.
-	// Capture the linked entrefs, clear our state immediately, then clean them
-	// on the next frame. This avoids recursive OnEntityDestroyed chains.
 	int glowRef = g_iModelIndex[entity];
 	int hintRef = g_iHintRef[entity];
 	int anchorRef = g_iHintTargetRef[entity];
