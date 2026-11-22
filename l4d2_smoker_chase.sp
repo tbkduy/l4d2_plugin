@@ -27,7 +27,7 @@
 public Plugin myinfo =
 {
     name        = "[L4D2] Smoker Chase After Tongue Break",
-    author      = "Claude",
+    author      = "TBK Duy",
     description = "Smoker bot chases and scratches survivors after its tongue breaks, jumping over obstacles",
     version     = PLUGIN_VERSION,
     url         = ""
